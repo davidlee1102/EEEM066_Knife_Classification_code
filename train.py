@@ -77,6 +77,9 @@ def train(train_loader, model, criterion, optimizer, epoch, valid_accuracy, star
 
 
 # Validating the model
+
+
+epoch_train_arr, train_loss_arr, map_avg_arr, i_arr = [], [], [], []
 def evaluate(val_loader, model, criterion, epoch, train_loss, start):
     model.cuda()
     model.eval()
@@ -97,6 +100,12 @@ def evaluate(val_loader, model, criterion, epoch, train_loss, start):
             message = '%s   %5.1f %6.1f       |      %0.3f     |      %0.3f    | %s' % ( \
                 "val", i, epoch, train_loss[0], map.avg, time_to_str((timer() - start), 'min'))
             print(message, end='', flush=True)
+            # save the memories here
+            epoch_train_arr.append(epoch)
+            train_loss_arr.append(train_loss[0])
+            map_avg_arr.append(map.avg)
+            i_arr.append(i)
+
         log.write("\n")
         log.write(message)
     return [map.avg]
@@ -155,3 +164,12 @@ for epoch in range(0, config.epochs):
     filename = "Knife-Effb0-E" + str(epoch + 1) + ".pt"
     torch.save(model.state_dict(), filename)
 
+df = pd.DataFrame({
+    'Epoch': epoch_train_arr,
+    'Train Loss': train_loss_arr,
+    'MAP Avg': map_avg_arr,
+    'Iteration': i_arr
+})
+
+
+df.to_csv("training_history.csv", index=False)
